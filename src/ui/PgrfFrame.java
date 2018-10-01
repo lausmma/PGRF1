@@ -3,12 +3,16 @@ package ui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class PgrfFrame extends JFrame {
 
     private BufferedImage img;
     static int width = 800;
     static int height = 600;
+    private JPanel panel;
+    static int FPS = 1000/60;
 
     public static void main(String... args){
 
@@ -22,6 +26,18 @@ public class PgrfFrame extends JFrame {
         setVisible(true);
         setSize(width, height);
         setTitle("Počítačová grafika");
+        setLocationRelativeTo(null);
+
+        panel = new JPanel();
+        add(panel);
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                draw();
+            }
+        }, 100, FPS);
 
         draw();
     }
@@ -32,5 +48,6 @@ public class PgrfFrame extends JFrame {
             img.setRGB(200 + i, 200, Color.RED.getRGB());
         }
         getGraphics().drawImage(img, 0, 0,null);
+        panel.paintComponents(getGraphics());
     }
 }
