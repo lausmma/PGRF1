@@ -2,10 +2,12 @@ package utils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Renderer {
 
-    private int color;
+    public int color;
     BufferedImage img;
 
     public Renderer(BufferedImage img) {
@@ -13,11 +15,11 @@ public class Renderer {
         color = Color.RED.getRGB();
     }
 
-    private void drawPixel(int x, int y) {
-        if(x < 0 || x >= 800){
+    public void drawPixel(int x, int y) {
+        if(x < 0 || x >= img.getWidth()){
             return;
         }
-        if(y < 0 || y >= 600){
+        if(y < 0 || y >= img.getHeight()){
             return;
         }
         img.setRGB(x, y, color);
@@ -30,10 +32,6 @@ public class Renderer {
 
         if (Math.abs(dx) > Math.abs(dy)) {
             // Řídící osa x
-            //float k .. q
-            //for(...){
-            //  drawPixel(x, y)
-            //}
             if (x1 > x2) {
                 int p = x1;
                 x1 = x2;
@@ -55,10 +53,6 @@ public class Renderer {
             //Řídící osa y
 
             // Řídící osa x
-            //float k .. q
-            //for(...){
-            //  drawPixel(x, y)
-            //}
             if (x1 > x2) {
                 int p = x1;
                 x1 = x2;
@@ -79,17 +73,20 @@ public class Renderer {
         }
     }
 
-    public void lineDDA(int x1, int y1, int x2, int y2) {
-        int dx, dy;
-        float k, g, h; // G= prirustek X, H = prirustek Y;
-        dx = x2 - x1;
-        dy = y2 - y1;
-        k = dy / (float) dx;
+    public void lineDDA(double x1, double y1, double x2, double y2) {
+        double dx, dy;
+        float k, g, h; // G = prirustek X, H = prirustek Y;
+
+        dx = x1 - x2;
+        dy = y1 - y2;
+
+        k = (float)dy / (float)dx;
+
         if (Math.abs(dx) > Math.abs(dy)) {
             g = 1; //jdeme po x - prirustek po 1
             h = k;
             if (x2 < x1) { // prohozeni
-                int temp = x1;
+                double temp = x1;
                 x1 = x2;
                 x2 = temp;
                 temp = y1;
@@ -100,7 +97,7 @@ public class Renderer {
             g = 1 / k;
             h = 1;//jdeme po y - prirustek po 1
             if (y2 < y1) {// prohozeni
-                int temp = x1;
+                double temp = x1;
                 x1 = x2;
                 x2 = temp;
                 temp = y1;
@@ -108,8 +105,8 @@ public class Renderer {
                 y2 = temp;
             }
         }
-        float x = x1;
-        float y = y1;
+        float x = (float)x1;
+        float y = (float)y1;
 
         for (int l = 1; l < Math.max(Math.abs(dx), Math.abs(dy)); l++) {
 
@@ -117,7 +114,6 @@ public class Renderer {
             x = x + g;
             y = y + h;
         }
-
     }
 
     public void drawPolygon(int x1, int y1, int x2, int y2, int count){

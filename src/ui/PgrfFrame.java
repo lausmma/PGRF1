@@ -6,10 +6,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class PgrfFrame extends JFrame implements MouseMotionListener {
+public class PgrfFrame extends JFrame implements MouseMotionListener{
 
     private BufferedImage img;
     static int width = 800;
@@ -19,9 +21,13 @@ public class PgrfFrame extends JFrame implements MouseMotionListener {
     private utils.Renderer renderer;
     private int coorX;
     private int coorY;
-    private int clickX = 300;
-    private int clickY = 300;
-    private int count = 5; //TODO - nesmí klesnout pod 3
+    private int clickX;
+    private int clickY;
+    private int count = 5;
+    List<Point> list = new ArrayList<>();
+    private int draggedX;
+    private int draggedY;
+    private boolean isDragged = false;
 
     public static void main(String... args){
 
@@ -46,6 +52,9 @@ public class PgrfFrame extends JFrame implements MouseMotionListener {
             public void mouseClicked(MouseEvent e) {
                 clickX = e.getX();
                 clickY = e.getY();
+                if(SwingUtilities.isRightMouseButton(e)){
+                    renderer.drawPolygon(clickX, clickY, coorX, coorY, count);
+                }
                 super.mouseClicked(e);
             }
         });
@@ -54,11 +63,11 @@ public class PgrfFrame extends JFrame implements MouseMotionListener {
             @Override
             public void keyPressed(KeyEvent e) {
                 if(e.getKeyCode() == KeyEvent.VK_UP){
-                    //šipka nahoru
+                    // + šipka nahoru
                     count++;
                 }
                 if(e.getKeyCode() == KeyEvent.VK_DOWN){
-                    //minus na numerické klávesnici
+                    // - šipa dolů
                     count--;
                     if(count < 3){
                         count = 3;
@@ -78,27 +87,66 @@ public class PgrfFrame extends JFrame implements MouseMotionListener {
             }
         }, 100, FPS);
 
-        draw();
+        mouseEvents();
     }
 
     private void draw(){
         img.getGraphics().fillRect(0, 0, img.getWidth(), img.getHeight());
 
-        renderer.lineDDA(clickX, clickY, coorX, coorY);
-        renderer.drawPolygon(clickX, clickY, coorX, coorY, count);
+        //renderer.lineDDA(clickX, clickY, coorX, coorY);
+        //renderer.drawPolygon(clickX, clickY, coorX, coorY, count);
+        drawMPolygon();
 
         getGraphics().drawImage(img, 0, 0,null);
         panel.paintComponents(getGraphics());
     }
 
+    private void mouseEvents() {
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                list.add(new Point(e.getX(), e.getY()));
+                isDragged = false;
+            }
+        });
+    }
+
     @Override
     public void mouseDragged(MouseEvent e) {
-
+        isDragged = true;
+        draggedX = e.getX();
+        draggedY = e.getY();
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
         coorX = e.getX();
         coorY = e.getY();
+    }
+
+    public void drawMPolygon(){
+        if(list.size() == 1){
+            renderer.drawPixel((int)list.get(0).getX(), (int)list.get(0).getY());
+        }
+        if(list.size() > 1){
+            int lastX = (int)list.get(0).getX();
+            int lastY = (int)list.get(0).getY();
+            for(int i = 0; i < list.size(); i++){
+                renderer.lineDDA(lastX, lastY, (int)list.get(i).getX(), (int)list.get(i).getY());
+                lastX = (int)list.get(i).getX();
+                lastY = (int)list.get(i).getY();
+            }
+        }
+
+        if(list.size() > 2){
+            renderer.lineDDA((int)list.get(0).getX(), (int)list.get(0).getY(), (int)list.get(list.size()-1).getX(), (int)list.get(list.size()-1).getY());
+        }
+
+        if(isDragged && list.size() > 1){
+            renderer.color = Color.green.getRGB();
+            renderer.lineDDA((int)list.get(0).getX(), (int)list.get(0).getY(), draggedX, draggedY);
+            renderer.lineDDA((int)list.get(list.size()-1).getX(), (int)list.get(list.size()-1).getY(), draggedX, draggedY);
+        }
+        renderer.color = Color.RED.getRGB();
     }
 }
